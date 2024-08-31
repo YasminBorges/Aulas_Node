@@ -1,36 +1,44 @@
 //Importe 
-const http = require('http');
-const fileUsers = './users.json';
-const fileDocuments = './documents.json';
+const express = require('express');
+const path = require('path');
+
 const fs = require('fs');
 
-const dataUser = fs.readFileSync(fileUsers,'utf-8');
-const dataDocument = fs.readFileSync(fileDocuments,'utf-8');
-
-
-const handleRequest = (request,response) => {
-    switch(request.url){
-        case '/users':
-            response.writeHead(200,{
-                'Content-type': 'application/json'
-            });
-            response.end(dataUser);
-            break;
-            case '/docs':
-                response.writeHead(200,{
-                    'Content-type': 'application/json'
-                });
-                response.end(dataDocument);
-                break;
-        default:
-            response.end('404 Page not found');
-    }
-}
-
-const server = http.createServer(handleRequest);
-
+const app = express();
 const port = 3300;
 
-server.listen(port,() => {
+const fileUsers = path.join(__dirname, './json/users.json');
+const fileDocuments = path.join(__dirname, './json/documents.json');
+
+app.use(express.json());
+
+
+app.get('/users',(req,res) => {
+    fs.readFile(fileUsers,'utf-8',(err,data) => {
+        if(err){
+            res.status(500).send('Erro ao ler o arquivo de usuários');
+            return;
+        }
+        res.status(200).json(JSON.parse(data));
+    });
+});
+
+app.get('/docs',(req,res) => {
+    fs.readFile(fileDocuments,'utf-8',(err,data) => {
+        if(err){
+            res.status(500).send('Erro ao ler o arquivo de usuários');
+            return;
+        }
+        res.status(200).json(JSON.parse(data));
+    });
+});
+
+
+app.use((req,res)=>{
+    res.status(404).send('404 page not found');
+});
+
+app.listen(port, () => {
     console.log(`Server running http://localhost:${port}`);
 });
+
